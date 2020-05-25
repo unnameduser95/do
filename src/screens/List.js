@@ -3,7 +3,7 @@ import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput } from 'react
 import { Ionicons } from 'react-native-vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
-const DATA = {
+const DATA = {  // fake data
   title: "fuck frame drops",
   todos: [
     {
@@ -34,15 +34,15 @@ const Todo = ({ title, description, complete, onChangeText, id }) => {
 }
 
 export default function List({ route }) {
-  // const [list, setList] = useState(route.params.list);
-  const [list, setList] = useState(DATA);
+  const [list, setList] = useState(route.params.list);
+  // const [list, setList] = useState(DATA);
   const [loading, setLoading] = useState(false);
 
   const onChangeText = (id, text) => {
-    console.log("list", list);
+    // console.log("list", list);
     const newListTodos = list.todos.map((item) => {
       if (item.id === id) {
-        console.log("item", item);
+        // console.log("item", item);
         let updatedItem = item;
         updatedItem.title = text;
       }
@@ -50,26 +50,34 @@ export default function List({ route }) {
       return item;
     });
 
-    console.log("newListTodos", newListTodos);
+    // console.log("newListTodos", newListTodos);
 
-    setList({ ...list, todos: newListTodos });
+    setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
+  
+  }
+
+  const onCreateTodo = () => {
+    let newListTodos = list.todos;
     
+    // id generation
+    // currently doesn't check for duplicate ids, will implement later
+    const id = Math.round(Math.random() * 1000000);
 
-    // let newList = list;
+    newListTodos.push({
+      title: "",
+      description: "",
+      complete: false,
+      id: id.toString(),
+    });
 
-    // const checkId = (object) => {
-    //   return id === object.id;
-    // }
-
-    // const index = newList.findIndex(checkId);
-    // console.log(index);
+    setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
   }
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.headerContainer}>
         <Text style={styles.heading} allowFontScaling={false}>{list.title}</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onCreateTodo}>
           <Ionicons name="ios-add-circle" size={35} color="rgba(0, 122, 255, 1)" />
         </TouchableOpacity>
       </View>
