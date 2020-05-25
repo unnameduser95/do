@@ -123,7 +123,7 @@ export default Lists = () => {
   }
 
   useEffect(() => {
-    // AsyncStorage.clear();  // quick reset -> uncomment and save
+    // AsyncStorage.clear();  // quick reset -> uncomment and save  **DELETES EVERYTHING, INCLUDING TODOS**
     getData();
   }, [])
 
