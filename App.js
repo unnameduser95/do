@@ -1,3 +1,5 @@
+import 'react-native-gesture-handler';  // react navigation stupidity
+
 import React, { useState, useEffect } from 'react';
 import { 
   Platform,
@@ -15,13 +17,20 @@ import {
 import { Ionicons } from 'react-native-vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
 import Modal from 'react-native-modal';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+import List from './src/screens/List';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
-const ListItem = ({ title, num }) => {  // num: number of tasks in list
+const ListItem = ({ title, num, onPress }) => {  // num: number of tasks in list
   return (
-    <TouchableOpacity style={styles.listItem}>
+    <TouchableOpacity 
+      style={styles.listItem}  
+      onPress={onPress}
+    >
       <View style={styles.listContent}>
         <Text style={styles.listText}>{title}</Text>
         <View style={styles.listEnd}>
@@ -59,9 +68,9 @@ const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside 
           style={[creationStyles.actionButton, creationStyles.createButton]}
           onPress={() => {
             onCreate({
-            "title": name,
-            "description": "",
-            "num": 0
+              "title": name,
+              "description": "",
+              "num": 0
             });
             onComplete();
           }}
@@ -73,7 +82,9 @@ const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside 
   )
 }
 
-export default function App() {
+const Lists = () => {
+  const navigation = useNavigation();
+
   const [lists, setLists] = useState(null);
   const [loading, setLoading] = useState(true);  // this will be more important for cloud storage stuff
   const [listCreation, setListCreation] = useState(false);  // display creation "modal"
@@ -135,7 +146,9 @@ export default function App() {
         {lists ? 
           <FlatList 
             data={lists}
-            renderItem={({ item }) => <ListItem title={item.title} num={item.num} />}
+            renderItem={({ item }) => <ListItem title={item.title} num={item.num} onPress={() => navigation.navigate("List", {
+              list: item
+            })} />}
             keyExtractor={item => item.id}
             style={styles.listContainer}
           />
@@ -158,6 +171,19 @@ export default function App() {
       </View>
     </SafeAreaView>
   );
+}
+
+const Stack = createStackNavigator();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator headerMode={"none"}>
+        <Stack.Screen name="Lists" component={Lists} />
+        <Stack.Screen name="List" component={List} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  )
 }
 
 const creationStyles = StyleSheet.create({
