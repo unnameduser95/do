@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const DATA = {  // fake data
   title: "fuck frame drops",
@@ -21,7 +22,7 @@ const DATA = {  // fake data
   ] 
 }
 
-const Todo = ({ title, description, complete, onChangeText, id }) => {
+const Todo = ({ title, description, complete, onChangeText, id }) => {  // todo object (what shows up in FlatList)
 
   return (
     <View style={styles.todo}>
@@ -38,6 +39,24 @@ export default function List({ route }) {
   // const [list, setList] = useState(DATA);
   const [loading, setLoading] = useState(false);
 
+  const updateData = async (newList) => {  // doesn't use state data (need to update stuff immediately on change)
+    const listsAsString = await AsyncStorage.getItem('lists');  // old data
+    const lists = JSON.parse(listsAsString);
+
+    const newLists = lists.map((item) => {
+      const updatedItem = item.id === newList.id ? newList : item
+      // if (item.id === newList.id) {
+      //   let updatedItem = newList;
+      // }
+
+      return updatedItem;
+    });
+
+    console.log("newLists", newLists);
+
+    await AsyncStorage.setItem('lists', JSON.stringify(newLists));
+  }
+
   const onChangeText = (id, text) => {
     // console.log("list", list);
     const newListTodos = list.todos.map((item) => {
@@ -53,6 +72,7 @@ export default function List({ route }) {
     // console.log("newListTodos", newListTodos);
 
     setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
+    updateData({ ...list, todos: newListTodos });
   
   }
 
@@ -71,6 +91,7 @@ export default function List({ route }) {
     });
 
     setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
+    updateData({ ...list, todos: newListTodos });
   }
 
   return (
@@ -82,7 +103,7 @@ export default function List({ route }) {
         </TouchableOpacity>
       </View>
       {list.todos.length !== 0 ? 
-        <FlatList 
+        <KeyboardAwareFlatList   // replacement for FlatList; moves with keyboard
           data={list.todos}
           renderItem={({ item }) => <Todo title={item.title} id={item.id} description={item.description} complete={item.complete} onChangeText={(id, text) => onChangeText(id, text)} />}
           keyExtractor={item => item.id}
