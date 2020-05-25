@@ -9,7 +9,8 @@ import {
   Dimensions,
   TextInput,
   StatusBar,
-  FlatList
+  FlatList,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -148,7 +149,7 @@ export default Lists = () => {
             style={styles.listContainer}
           />
         :
-          loading ? 
+          loading ?
             <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
           :
             <Text style={styles.placeholderText} allowFontScaling={false}>Tap the button above to create your first list!</Text>
