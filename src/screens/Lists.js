@@ -16,6 +16,7 @@ import { Ionicons } from 'react-native-vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
 import Modal from 'react-native-modal';
 import { useNavigation } from '@react-navigation/native';
+import { getData, setData } from '../components/Sync';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
@@ -61,8 +62,8 @@ const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside 
         </TouchableOpacity>
         <TouchableOpacity 
           style={[creationStyles.actionButton, creationStyles.createButton]}
-          onPress={() => {
-            onCreate({
+          onPress={() => {  // list object as it appears in lists screen
+            onCreate({  // run callback passed through prop
               "title": name,
               "description": "",
               "num": 0,
@@ -85,9 +86,12 @@ export default Lists = () => {
   const [loading, setLoading] = useState(true);  // this will be more important for cloud storage stuff
   const [listCreation, setListCreation] = useState(false);  // display creation "modal"
 
-  const getData = async () => {
+  const _getLists = async () => {
     try {
-      const value = await AsyncStorage.getItem("lists");
+      // const value = await AsyncStorage.getItem("lists");  // currently gets ALL list data, including todos
+      const value = await getData("lists");
+      // must change so that only necessary data is loaded
+
       setLists(value ? JSON.parse(value) : value);
       setLoading(false);
     } catch (e) {
@@ -95,36 +99,42 @@ export default Lists = () => {
     }
   }
 
-  const saveData = async (data) => {  // take lists as input
-    try {
-      await AsyncStorage.setItem("lists", JSON.stringify(data))
-    } catch(e) {
-      console.error(e);
-    }
-  }
+  // const saveData = async (data) => {  // take lists as input
+  //   try {
+  //     await AsyncStorage.setItem("lists", JSON.stringify(data))
+  //   } catch(e) {
+  //     console.error(e);
+  //   }
+  // }
 
-  const onCreate = async (newList) => {   // id is generated here
+  const _onCreate = async (newList) => {   // id is generated here
 
     // id generation
     // currently doesn't check for duplicate ids, will implement later
-    const id = Math.round(Math.random() * 1000000);
+    const id = Math.round(Math.random() * 100000000);
     let list = newList;
     list.id = id.toString();  // FlatList component only takes string IDs
+
+    // await AsyncStorage.setItem("list-".concat(list.id), JSON.stringify(list));  // create separate storage object for list
+    setData("list-".concat(list.id), list);
 
     if (lists) {
       let newListOfLists = lists;  // get current list of lists
       newListOfLists.push(list);  // append new list
-      saveData(newListOfLists);
+      // saveData(newListOfLists);
+
+      setData("lists", newListOfLists);
       setLists(newListOfLists);  // set new list of lists as state (trigger re-render)
     } else {
-      saveData([list]);
+      // saveData([list]);
+      setData("lists", [list]);
       setLists([list]);  // create the list
     };
   }
 
   useEffect(() => {
     // AsyncStorage.clear();  // quick reset -> uncomment and save  **DELETES EVERYTHING, INCLUDING TODOS**
-    getData();
+    _getLists();
   }, [])
 
   return (
@@ -162,7 +172,7 @@ export default Lists = () => {
             animationOut={"fadeOut"}
             avoidKeyboard={true}
         >
-          <NewListCreation onComplete={() => setListCreation(false)} onCreate={(newList) => onCreate(newList)}/>
+          <NewListCreation onComplete={() => setListCreation(false)} onCreate={(newList) => _onCreate(newList)}/>
         </Modal>
       </View>
     </SafeAreaView>
