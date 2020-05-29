@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
@@ -156,25 +156,27 @@ export default function List({ route }) {
       </View>
       {list ?  // a ton of conditional stuff for some reason
         list.todos && list.todos.length !== 0 ? 
-          <KeyboardAwareFlatList   // replacement for FlatList; moves with keyboard
-            data={list.todos}
-            renderItem={({ item }) => <Todo 
-              title={item.title} 
-              id={item.id} 
-              description={item.description} 
-              complete={item.complete} 
-              onChangeText={(id, text) => {
-                // _onChangeText(id, text);
-                const newListTodos = _updateTodo({ ...item, title: text });
-                _updateList("todos", newListTodos);
-              }}
-              onComplete={() => {
-                const newListTodos = _updateTodo({ ...item, complete: !item.complete });
-                _updateList("todos", newListTodos);
-              }} />}
-            keyExtractor={item => item.id}
-            style={styles.listContainer}
-          />
+          <KeyboardAvoidingView behavior="padding">
+            <FlatList   // replacement for FlatList; moves with keyboard
+              data={list.todos}
+              renderItem={({ item }) => <Todo 
+                title={item.title} 
+                id={item.id} 
+                description={item.description} 
+                complete={item.complete} 
+                onChangeText={(id, text) => {
+                  // _onChangeText(id, text);
+                  const newListTodos = _updateTodo({ ...item, title: text });
+                  _updateList("todos", newListTodos);
+                }}
+                onComplete={() => {
+                  const newListTodos = _updateTodo({ ...item, complete: !item.complete });
+                  _updateList("todos", newListTodos);
+                }} />}
+              keyExtractor={item => item.id}
+              style={styles.listContainer}
+            />
+          </KeyboardAvoidingView>
         :
           loading ?
             <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
