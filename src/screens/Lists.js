@@ -11,7 +11,7 @@ import {
   StatusBar,
   FlatList,
   Alert,
-  TouchableWithoutFeedback
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -149,21 +149,6 @@ export default Lists = () => {
       await setData("lists", [list.id]);
       _refresh();
     }
-
-    // delete list.todos;
-
-    // if (lists) {
-    //   let newListOfLists = lists;  // get current list of lists
-    //   newListOfLists.push(list);  // append new list
-    //   // saveData(newListOfLists);
-
-    //   setData("lists", newListOfLists);
-    //   setLists(newListOfLists);  // set new list of lists as state (trigger re-render)
-    // } else {
-    //   // saveData([list]);
-    //   setData("lists", [list]);
-    //   setLists([list]);  // create the list
-    // };
   }
 
   const _onReset = () => {  // oh no
@@ -213,6 +198,16 @@ export default Lists = () => {
             })} />}
             keyExtractor={item => item.id}
             style={styles.listContainer}
+            refreshControl={
+              <RefreshControl 
+                refreshing={loading} 
+                onRefresh={() => {
+                  setLoading(true);
+                  _refresh();
+                }} 
+                tintColor={"#b0b0b0"}
+              />
+            }
           />
         :
           loading ?
@@ -222,11 +217,11 @@ export default Lists = () => {
         }
 
         <Modal 
-            style={styles.modal} 
-            isVisible={listCreation}
-            animationIn={"fadeIn"} 
-            animationOut={"fadeOut"}
-            avoidKeyboard={true}
+          style={styles.modal} 
+          isVisible={listCreation}
+          animationIn={"fadeIn"} 
+          animationOut={"fadeOut"}
+          avoidKeyboard={true}
         >
           <NewListCreation onComplete={() => setListCreation(false)} onCreate={(newList) => _onCreate(newList)}/>
         </Modal>
