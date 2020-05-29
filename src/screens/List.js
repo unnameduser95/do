@@ -178,6 +178,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
     color: "black",
+    flex: 1,
   },
   placeholderText: {
     alignSelf: "center",
