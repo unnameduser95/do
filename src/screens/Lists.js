@@ -67,6 +67,7 @@ const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside 
               "title": name,
               "description": "",
               "num": 0,
+              "todos": [],
             });
             onComplete();
           }}
