@@ -87,6 +87,14 @@ export default Lists = () => {
   const [loading, setLoading] = useState(true);  // this will be more important for cloud storage stuff
   const [listCreation, setListCreation] = useState(false);  // display creation "modal"
 
+  const _refresh = async () => {
+    const listIds = await _getLists();
+    const data = listIds ? await _getListsData(listIds) : null;
+
+    setLists(data);
+    setLoading(false);
+  }
+  
   const _getLists = async () => {  // will eventually only get ids
     try {
       // const value = await AsyncStorage.getItem("lists");  // currently gets ALL list data, including todos
@@ -116,7 +124,6 @@ export default Lists = () => {
       return await _loadFromStorage(typeof element === "object" ? element.id : element);
     }));  // typeof element may change in future
 
-    console.log("listData", listData);
     return listData;
   }
 
@@ -128,20 +135,35 @@ export default Lists = () => {
     let list = newList;
     list.id = id.toString();  // FlatList component only takes string IDs
 
-    setData("list-".concat(list.id), list);
+    setData("list-".concat(list.id), list);  // create separate list item
 
-    if (lists) {
-      let newListOfLists = lists;  // get current list of lists
-      newListOfLists.push(list);  // append new list
-      // saveData(newListOfLists);
+    const listOfLists = await _getLists();
 
-      setData("lists", newListOfLists);
-      setLists(newListOfLists);  // set new list of lists as state (trigger re-render)
+    if (listOfLists) {
+      let newListOfLists = listOfLists;
+      newListOfLists.push(list.id);
+
+      await setData("lists", newListOfLists);
+      _refresh();
     } else {
-      // saveData([list]);
-      setData("lists", [list]);
-      setLists([list]);  // create the list
-    };
+      await setData("lists", [list.id]);
+      _refresh();
+    }
+
+    // delete list.todos;
+
+    // if (lists) {
+    //   let newListOfLists = lists;  // get current list of lists
+    //   newListOfLists.push(list);  // append new list
+    //   // saveData(newListOfLists);
+
+    //   setData("lists", newListOfLists);
+    //   setLists(newListOfLists);  // set new list of lists as state (trigger re-render)
+    // } else {
+    //   // saveData([list]);
+    //   setData("lists", [list]);
+    //   setLists([list]);  // create the list
+    // };
   }
 
   const _onReset = () => {  // oh no
@@ -163,17 +185,7 @@ export default Lists = () => {
   }
 
   useEffect(() => {
-    // AsyncStorage.clear();  // quick reset -> uncomment and save  **DELETES EVERYTHING, INCLUDING TODOS**
-
-    const scopedFunction = async () => {
-      const listIds = await _getLists();
-      const data = listIds ? await _getListsData(listIds) : null;
-
-      setLists(data);
-      setLoading(false);
-    }
-
-    scopedFunction();
+    _refresh();
   }, [])
 
   return (

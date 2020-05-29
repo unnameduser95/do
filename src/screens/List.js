@@ -98,7 +98,7 @@ export default function List({ route }) {
     let newListTodos = list.todos;
     
     // id generation
-    // currently doesn't check for duplicate ids, will implement later
+    // currently doesn't check for duplicate ids, will implement "later"
     const id = Math.round(Math.random() * 100000000);
 
     newListTodos.push({
