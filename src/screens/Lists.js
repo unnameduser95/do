@@ -10,6 +10,7 @@ import {
   TextInput,
   StatusBar,
   FlatList,
+  Alert,
   TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
@@ -143,6 +144,24 @@ export default Lists = () => {
     };
   }
 
+  const _onReset = () => {  // oh no
+    Alert.alert(
+      "Are you sure about this?", 
+      "oh no you've pressed the big scary reset button...by the way this deletes everything, if you're seeing this outside of development then someone's getting fired", [
+      {
+        text: "Cancel",
+      },
+      {
+        text: "sure i guess",
+        onPress: () => {
+          AsyncStorage.clear();
+          setLists(null);
+        },
+        style: "destructive",
+      }
+    ]);
+  }
+
   useEffect(() => {
     // AsyncStorage.clear();  // quick reset -> uncomment and save  **DELETES EVERYTHING, INCLUDING TODOS**
 
@@ -163,6 +182,11 @@ export default Lists = () => {
       <View style={styles.container}>
         <View style={styles.headerContainer}>
           <Text style={styles.heading} allowFontScaling={false}>Lists</Text>
+          <TouchableOpacity onPress={
+            () => _onReset()
+          } style={{marginRight: 10}}>
+            <Ionicons name="ios-trash" size={35} color={"red"} />
+          </TouchableOpacity>
           <TouchableOpacity onPress={
             () => setListCreation(true)
           }>
@@ -279,6 +303,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 30,
     fontWeight: "bold",
+    flex: 1,
   },
   listContainer: {
     width: screenWidth,
