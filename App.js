@@ -1,3 +1,5 @@
+import 'react-native-gesture-handler';  // react navigation stupidity
+
 import React, { useState, useEffect } from 'react';
 import { 
   Platform,
@@ -15,149 +17,26 @@ import {
 import { Ionicons } from 'react-native-vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
 import Modal from 'react-native-modal';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+import List from './src/screens/List';
+import Lists from './src/screens/Lists';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
-const ListItem = ({ title, num }) => {  // num: number of tasks in list
-  return (
-    <TouchableOpacity style={styles.listItem}>
-      <View style={styles.listContent}>
-        <Text style={styles.listText}>{title}</Text>
-        <View style={styles.listEnd}>
-          <Text style={styles.listNum}>{num}</Text>
-          <Ionicons name={"ios-arrow-forward"} size={16} color="#b0b0b0" />
-        </View>
-      </View>
-    </TouchableOpacity>
-  )
-}
-
-const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside modal
-  const [name, setName] = useState("");
-
-  return (
-    <View style={creationStyles.container}>
-      <View style={creationStyles.nameContainer}>
-        {/* <Text style={creationStyles.nameText}>NAME</Text> */}
-        <TextInput 
-          style={creationStyles.input} 
-          placeholder="Name of list"
-          placeholderTextColor="#b0b0b0"
-          autoFocus={true}
-          onChangeText={(text) => setName(text)}
-        />
-      </View>
-      <View style={creationStyles.bottom}>
-        <TouchableOpacity 
-          style={creationStyles.actionButton}
-          onPress={onComplete}  
-        >
-          <Text style={creationStyles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[creationStyles.actionButton, creationStyles.createButton]}
-          onPress={() => {
-            onCreate({
-            "title": name,
-            "description": "",
-            "num": 0
-            });
-            onComplete();
-          }}
-        >
-          <Text style={creationStyles.createButtonText}>Create</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
-}
+const Stack = createStackNavigator();
 
 export default function App() {
-  const [lists, setLists] = useState(null);
-  const [loading, setLoading] = useState(true);  // this will be more important for cloud storage stuff
-  const [listCreation, setListCreation] = useState(false);  // display creation "modal"
-
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem("lists");
-      setLists(value ? JSON.parse(value) : value);
-      setLoading(false);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  const saveData = async (data) => {  // take lists as input
-    try {
-      await AsyncStorage.setItem("lists", JSON.stringify(data))
-    } catch(e) {
-      console.error(e);
-    }
-  }
-
-  const onCreate = async (newList) => {   // id is generated here
-
-    // id generation
-    // currently doesn't check for duplicate ids, will implement later
-    const id = Math.round(Math.random() * 1000000);
-    let list = newList;
-    list.id = id.toString();  // FlatList component only takes string IDs
-
-    if (lists) {
-      let newListOfLists = lists;  // get current list of lists
-      newListOfLists.push(list);  // append new list
-      saveData(newListOfLists);
-      setLists(newListOfLists);  // set new list of lists as state (trigger re-render)
-    } else {
-      saveData([list]);
-      setLists([list]);  // create the list
-    };
-  }
-
-  useEffect(() => {
-    // AsyncStorage.clear();  // quick reset -> uncomment and save
-    getData();
-  }, [])
-
   return (
-    <SafeAreaView style={styles.safeAreaView}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.heading} allowFontScaling={false}>Lists</Text>
-          <TouchableOpacity onPress={
-            () => setListCreation(true)
-          }>
-            <Ionicons name="ios-add" size={35} color={"rgba(0, 122, 255, 1)"} />
-          </TouchableOpacity>
-        </View>
-        {lists ? 
-          <FlatList 
-            data={lists}
-            renderItem={({ item }) => <ListItem title={item.title} num={item.num} />}
-            keyExtractor={item => item.id}
-            style={styles.listContainer}
-          />
-        :
-          loading ? 
-            <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
-          :
-            <Text style={styles.placeholderText} allowFontScaling={false}>Tap the button above to create your first list!</Text>
-        }
-
-        <Modal 
-            style={styles.modal} 
-            isVisible={listCreation}
-            animationIn={"fadeIn"} 
-            animationOut={"fadeOut"}
-            avoidKeyboard={true}
-        >
-          <NewListCreation onComplete={() => setListCreation(false)} onCreate={(newList) => onCreate(newList)}/>
-        </Modal>
-      </View>
-    </SafeAreaView>
-  );
+    <NavigationContainer>
+      <Stack.Navigator headerMode={"none"}>
+        <Stack.Screen name="Lists" component={Lists} />
+        <Stack.Screen name="List" component={List} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  )
 }
 
 const creationStyles = StyleSheet.create({
@@ -218,13 +97,10 @@ const creationStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#ffffff",
   },
   container: {
     flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // backgroundColor: '#F5FCFF',
   },
   headerContainer: {
     flexDirection: "row",
@@ -255,6 +131,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 55,
     backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#f2f2f2"
     // borderWidth: 1,
     // borderColor: "#f2f2f2",
   },
