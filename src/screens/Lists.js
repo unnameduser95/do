@@ -67,7 +67,6 @@ const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside 
               "title": name,
               "description": "",
               "num": 0,
-              "todos": [],
             });
             onComplete();
           }}
@@ -148,7 +147,7 @@ export default Lists = () => {
 
     const scopedFunction = async () => {
       const listIds = await _getLists();
-      const data = await _getListsData(listIds);
+      const data = listIds ? await _getListsData(listIds) : null;
 
       setLists(data);
       setLoading(false);
