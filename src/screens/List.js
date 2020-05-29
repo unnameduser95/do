@@ -2,27 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-community/async-storage';
 
 import { getData, setData } from '../components/Sync';
-
-const DATA = {  // fake data
-  title: "fuck frame drops",
-  todos: [
-    {
-      title: "Task 1",
-      description: "This is a description",
-      id: "1",
-      complete: true
-    },
-    {
-      title: "Task 2",
-      description: "This is another description",
-      id: "2",
-      complete: false
-    },
-  ] 
-}
 
 const Todo = ({ title, description, complete, onChangeText, id }) => {  // todo object (what shows up in FlatList)
 
@@ -43,9 +24,8 @@ export default function List({ route }) {
   const _getList = async (id) => {  // id: integer or string
     try {
       const response = await getData("list-".concat(typeof id === "string" ? id : toString(id)));
-      const parsedResponse = JSON.parse(response);  // USE JSON PARSE YOU DUMBASS
+      const parsedResponse = JSON.parse(response);  // i spent an hour debugging this and forgot to parse...fml
 
-      console.log(`Got response ${parsedResponse}`);
       setList(parsedResponse);
       setLoading(false);
     } catch (e) {
@@ -54,30 +34,54 @@ export default function List({ route }) {
   }
 
   // ~~~~~~~~~~OLD CODE~~~~~~~~~~
-  const _updateData = async (newList) => {  // doesn't use state data (need to update stuff immediately on change)
-    const listsAsString = await AsyncStorage.getItem('lists');  // old data
-    const lists = JSON.parse(listsAsString);
+  // const _updateData = async (newList) => {  // doesn't use state data (need to update stuff immediately on change)
+  //   const listsAsString = await AsyncStorage.getItem('lists');  // old data
+  //   const lists = JSON.parse(listsAsString);
 
-    const newLists = lists.map((item) => {
-      const updatedItem = item.id === newList.id ? newList : item
-      // if (item.id === newList.id) {
-      //   let updatedItem = newList;
-      // }
+  //   const newLists = lists.map((item) => {
+  //     const updatedItem = item.id === newList.id ? newList : item
+  //     // if (item.id === newList.id) {
+  //     //   let updatedItem = newList;
+  //     // }
 
-      return updatedItem;
-    });
+  //     return updatedItem;
+  //   });
 
-    console.log("newLists", newLists);
+  //   console.log("newLists", newLists);
 
-    await AsyncStorage.setItem('lists', JSON.stringify(newLists));
-  }
+  //   await AsyncStorage.setItem('lists', JSON.stringify(newLists));
+  // }
   // ~~~~~~~~~~END OLD CODE~~~~~~~
 
-  const onChangeText = (id, text) => {
-    // console.log("list", list);
+  const _updateList = (property, newValue) => {
+    let newList;
+
+    console.log(property);
+
+    switch(property) {
+      case "title": 
+        newList = { ...list, title: newValue };
+        break;
+      case "description": 
+        newList = { ...list, description: newValue };
+        break;
+      case "todos": 
+        newList = { ...list, todos: newValue };
+        break;
+      default: 
+        newList = { ...list };
+        break;
+    }
+
+    console.log(newList);
+
+    setList(newList);
+    setData("list-".concat(list.id), newList);
+  }
+
+  const _onChangeText = (id, text) => {
     const newListTodos = list.todos.map((item) => {
       if (item.id === id) {
-        // console.log("item", item);
         let updatedItem = item;
         updatedItem.title = text;
       }
@@ -85,10 +89,7 @@ export default function List({ route }) {
       return item;
     });
 
-    // console.log("newListTodos", newListTodos);
-
     setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
-    // _updateData({ ...list, todos: newListTodos });
 
     setData("list-".concat(list.id), {...list, todos: newListTodos});
   }
@@ -119,14 +120,20 @@ export default function List({ route }) {
     _getList(route.params.list.id);
   }, [])
 
-  console.log("Current list data in state:", list);
-  console.log("Current list of todos in state:", list ? list.todos : "list object doesn't exist");
-  console.log("Current list title:", list ? list.title : "list object doesn't exist");
+  // console.log("Current list data in state:", list);
+  // console.log("Current list of todos in state:", list ? list.todos : "list object doesn't exist");
+  // console.log("Current list title:", list ? list.title : "list object doesn't exist");
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.headerContainer}>
-        <Text style={styles.heading} allowFontScaling={false}>{list ? list.title : "No title"}</Text>
+        <TextInput 
+          style={styles.heading} 
+          allowFontScaling={false}
+          onChangeText={(text) => {
+            _updateList("title", text);
+          }}
+        >{list ? list.title : "No title"}</TextInput>
         <TouchableOpacity onPress={_onCreateTodo}>
           <Ionicons name="ios-add-circle" size={35} color="rgba(0, 122, 255, 1)" />
         </TouchableOpacity>
@@ -135,7 +142,7 @@ export default function List({ route }) {
         list.todos && list.todos.length !== 0 ? 
           <KeyboardAwareFlatList   // replacement for FlatList; moves with keyboard
             data={list.todos}
-            renderItem={({ item }) => <Todo title={item.title} id={item.id} description={item.description} complete={item.complete} onChangeText={(id, text) => onChangeText(id, text)} />}
+            renderItem={({ item }) => <Todo title={item.title} id={item.id} description={item.description} complete={item.complete} onChangeText={(id, text) => _onChangeText(id, text)} />}
             keyExtractor={item => item.id}
             style={styles.listContainer}
           />
@@ -170,6 +177,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 30,
     fontWeight: "bold",
+    color: "black",
   },
   placeholderText: {
     alignSelf: "center",

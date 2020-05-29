@@ -86,26 +86,38 @@ export default Lists = () => {
   const [loading, setLoading] = useState(true);  // this will be more important for cloud storage stuff
   const [listCreation, setListCreation] = useState(false);  // display creation "modal"
 
-  const _getLists = async () => {
+  const _getLists = async () => {  // will eventually only get ids
     try {
       // const value = await AsyncStorage.getItem("lists");  // currently gets ALL list data, including todos
       const value = await getData("lists");
       // must change so that only necessary data is loaded
 
-      setLists(value ? JSON.parse(value) : value);
-      setLoading(false);
+      // setLists(value ? JSON.parse(value) : value);
+      // setLoading(false);
+
+      const parsedValue = JSON.parse(value);
+      // console.log(parsedValue);
+
+      return parsedValue;
     } catch (e) {
       console.error(e);
     }
   }
 
-  // const saveData = async (data) => {  // take lists as input
-  //   try {
-  //     await AsyncStorage.setItem("lists", JSON.stringify(data))
-  //   } catch(e) {
-  //     console.error(e);
-  //   }
-  // }
+  const _getListsData = async (listIds) => {  // use array of list IDs to get updated list data
+    const _loadFromStorage = async (id) => {
+      const response = await getData("list-".concat(id));
+
+      return JSON.parse(response);
+    }
+
+    const listData = await Promise.all(listIds.map(async (element) => {
+      return await _loadFromStorage(typeof element === "object" ? element.id : element);
+    }));  // typeof element may change in future
+
+    console.log("listData", listData);
+    return listData;
+  }
 
   const _onCreate = async (newList) => {   // id is generated here
 
@@ -115,7 +127,6 @@ export default Lists = () => {
     let list = newList;
     list.id = id.toString();  // FlatList component only takes string IDs
 
-    // await AsyncStorage.setItem("list-".concat(list.id), JSON.stringify(list));  // create separate storage object for list
     setData("list-".concat(list.id), list);
 
     if (lists) {
@@ -134,7 +145,16 @@ export default Lists = () => {
 
   useEffect(() => {
     // AsyncStorage.clear();  // quick reset -> uncomment and save  **DELETES EVERYTHING, INCLUDING TODOS**
-    _getLists();
+
+    const scopedFunction = async () => {
+      const listIds = await _getLists();
+      const data = await _getListsData(listIds);
+
+      setLists(data);
+      setLoading(false);
+    }
+
+    scopedFunction();
   }, [])
 
   return (

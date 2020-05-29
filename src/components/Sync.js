@@ -9,7 +9,8 @@ const setData = async (name, data) => {  // name: string    data: array, object,
 
 const getData = async (name) => {  // name: string
   const response = await AsyncStorage.getItem(name);
-  console.log(`Got storage item ${name} with response ${response}`);  // RETURNS STRING --- USE JSON.parse()
+  console.log(`Got storage item ${name} with response ${response}`);
+  // REMEMBER TO PARSE AFTER GETTING DATA
 
   return response;
 }
