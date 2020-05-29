@@ -5,11 +5,11 @@ import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 import { getData, setData } from '../components/Sync';
 
-const Todo = ({ title, description, complete, onChangeText, id }) => {  // todo object (what shows up in FlatList)
+const Todo = ({ title, description, id, complete, onChangeText, onComplete }) => {  // todo object (what shows up in FlatList)
 
   return (
     <View style={styles.todo}>
-      <TouchableOpacity style={styles.checkbox}>
+      <TouchableOpacity style={styles.checkbox} onPress={onComplete}>
         <Ionicons name={complete ? "ios-checkmark-circle" : "ios-radio-button-off"} size={30} color="#b0b0b0"/>
       </TouchableOpacity>
       <TextInput style={styles.todoInput} value={title} onChangeText={(text) => onChangeText(id, text)} />
@@ -79,20 +79,36 @@ export default function List({ route }) {
     setData("list-".concat(list.id), newList);
   }
 
-  const _onChangeText = (id, text) => {
+  // returns updated todo list for use in _updateList
+  const _updateTodo = (newTodo) => {
     const newListTodos = list.todos.map((item) => {
-      if (item.id === id) {
-        let updatedItem = item;
-        updatedItem.title = text;
-      }
+      let updatedItem = item;
 
-      return item;
+      if (item.id === newTodo.id) {  // must know which todo to replace
+        updatedItem = newTodo;
+      };
+
+      return updatedItem;
     });
 
-    setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
-
-    setData("list-".concat(list.id), {...list, todos: newListTodos});
+    return newListTodos;
   }
+
+  // obsolete code
+  // const _onChangeText = (id, text) => {
+  //   const newListTodos = list.todos.map((item) => {
+  //     if (item.id === id) {
+  //       let updatedItem = item;
+  //       updatedItem.title = text;
+  //     }
+
+  //     return item;
+  //   });
+
+  //   setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
+
+  //   setData("list-".concat(list.id), {...list, todos: newListTodos});
+  // }
 
   const _onCreateTodo = () => {
     let newListTodos = list.todos;
@@ -142,7 +158,20 @@ export default function List({ route }) {
         list.todos && list.todos.length !== 0 ? 
           <KeyboardAwareFlatList   // replacement for FlatList; moves with keyboard
             data={list.todos}
-            renderItem={({ item }) => <Todo title={item.title} id={item.id} description={item.description} complete={item.complete} onChangeText={(id, text) => _onChangeText(id, text)} />}
+            renderItem={({ item }) => <Todo 
+              title={item.title} 
+              id={item.id} 
+              description={item.description} 
+              complete={item.complete} 
+              onChangeText={(id, text) => {
+                // _onChangeText(id, text);
+                const newListTodos = _updateTodo({ ...item, title: text });
+                _updateList("todos", newListTodos);
+              }}
+              onComplete={() => {
+                const newListTodos = _updateTodo({ ...item, complete: !item.complete });
+                _updateList("todos", newListTodos);
+              }} />}
             keyExtractor={item => item.id}
             style={styles.listContainer}
           />
