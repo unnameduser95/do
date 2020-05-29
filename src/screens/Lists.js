@@ -193,7 +193,7 @@ export default Lists = () => {
         {lists ? 
           <FlatList 
             data={lists}
-            renderItem={({ item }) => <ListItem title={item.title} num={item.num} onPress={() => navigation.navigate("List", {
+            renderItem={({ item }) => <ListItem title={item.title} num={item.todos.length} onPress={() => navigation.navigate("List", {
               list: item
             })} />}
             keyExtractor={item => item.id}
