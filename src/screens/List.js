@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import Modal from 'react-native-modal';
-import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
+import { Swipeable } from 'react-native-gesture-handler';
 
 import { getData, setData } from '../components/Sync';
+import { SwipeableDelete } from '../components/SharedUI';
 
 const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
 
@@ -153,6 +154,21 @@ export default function List({ route }) {
     return newListTodos;
   }
 
+  const _onDeleteTodo = (todo) => {  // returns updated to-do list without deleted to-do
+    console.log("Creating updated to-do list with deleted value", todo);
+
+    let newListTodos = list.todos;
+    const index = newListTodos.indexOf(todo);
+
+    if (index > -1) {
+      newListTodos.splice(index, 1)
+    }
+
+    console.log("Created updated to-do list", newListTodos);
+
+    return newListTodos;
+  }
+
   const _onCreateTodo = () => {
     let newListTodos = list.todos;
     
@@ -206,22 +222,34 @@ export default function List({ route }) {
           
           <FlatList   // replacement for FlatList; moves with keyboard
             data={list.todos}
-            renderItem={({ item }) => <Todo 
-              title={item.title} 
-              id={item.id} 
-              description={item.description} 
-              complete={item.complete} 
-              onTapText={() => {
-                setEditTodo(true);
-                setSelectedTodo(item);
-              }}
-              onComplete={() => {
-                const newListTodos = _updateTodo({ ...item, complete: !item.complete });
-                _updateList("todos", newListTodos);
-              }}  />}
-            keyExtractor={item => item.id}
-            style={styles.listContainer}
-          />
+            renderItem={({ item }) => 
+              <Swipeable
+                rightThreshold={70}
+                renderRightActions={SwipeableDelete}
+                onSwipeableRightOpen={() => {
+                  const newListTodos = _onDeleteTodo(item);
+                  _updateList("todos", newListTodos);
+                }}
+              >
+                <Todo 
+                  title={item.title} 
+                  id={item.id} 
+                  description={item.description} 
+                  complete={item.complete} 
+                  onTapText={() => {
+                    setEditTodo(true);
+                    setSelectedTodo(item);
+                  }}
+                  onComplete={() => {
+                    const newListTodos = _updateTodo({ ...item, complete: !item.complete });
+                    _updateList("todos", newListTodos);
+                  }}  
+                />
+              </Swipeable>
+              }
+              keyExtractor={item => item.id}
+              style={styles.listContainer}
+            />
         :
           loading ?
             <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
