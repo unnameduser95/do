@@ -315,6 +315,8 @@ const styles = StyleSheet.create({
   listContainer: {
     width: screenWidth,
     alignSelf: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#f2f2f2",
   },
   listItem: {
     flex: 1,
@@ -323,8 +325,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 55,
     backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#f2f2f2"
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f2"
     // borderWidth: 1,
     // borderColor: "#f2f2f2",
   },

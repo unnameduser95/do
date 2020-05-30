@@ -383,14 +383,18 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     color: "#b0b0b0"
   },
+  listContainer: {
+    borderTopWidth: 1,
+    borderTopColor: "#f2f2f2",
+  },
   todo: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     height: 55,
     backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#f2f2f2"
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f2"
   },
   checkbox: {
     margin: 10,
