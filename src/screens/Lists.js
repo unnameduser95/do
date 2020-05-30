@@ -45,7 +45,6 @@ const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside 
   return (
     <View style={creationStyles.container}>
       <View style={creationStyles.nameContainer}>
-        {/* <Text style={creationStyles.nameText}>NAME</Text> */}
         <TextInput 
           style={creationStyles.input} 
           placeholder="Name of list"
@@ -67,7 +66,6 @@ const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside 
             onCreate({  // run callback passed through prop
               "title": name,
               "description": "",
-              "num": 0,
               "todos": [],
             });
             onComplete();
