@@ -6,7 +6,7 @@ import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 import { getData, setData } from '../components/Sync';
 
-const Todo = ({ title, id, complete, onChangeText, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
+const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
 
   return (
     <View style={styles.todo}>
@@ -160,19 +160,23 @@ export default function List({ route }) {
     // currently doesn't check for duplicate ids, will implement "later"
     const id = Math.round(Math.random() * 100000000);
 
-    newListTodos.push({
+    const newTodo = {
       title: "",
       description: "",
       complete: false,
       id: id.toString(),
-    });
+    }
+
+    newListTodos.push(newTodo);
 
     setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
-    // _updateData({ ...list, todos: newListTodos });
 
     // i really, really hope this works
     // UPDATE: IT WORKED LET'S GOOOOOOOOOO
     setData("list-".concat(list.id), {...list, todos: newListTodos});  // uses new component
+
+    setSelectedTodo(newTodo);  // make modal pop up when button is pressed
+    setEditTodo(true);
   }
 
   useEffect(() => {
@@ -211,15 +215,10 @@ export default function List({ route }) {
                 setEditTodo(true);
                 setSelectedTodo(item);
               }}
-              onChangeText={(id, text) => {
-                // _onChangeText(id, text);
-                const newListTodos = _updateTodo({ ...item, title: text });
-                _updateList("todos", newListTodos);
-              }}
               onComplete={() => {
                 const newListTodos = _updateTodo({ ...item, complete: !item.complete });
                 _updateList("todos", newListTodos);
-              }} />}
+              }}  />}
             keyExtractor={item => item.id}
             style={styles.listContainer}
           />
