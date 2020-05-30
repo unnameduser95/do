@@ -224,7 +224,8 @@ export default function List({ route }) {
             data={list.todos}
             renderItem={({ item }) => 
               <Swipeable
-                rightThreshold={70}
+                rightThreshold={100}
+                friction={1.5}
                 renderRightActions={SwipeableDelete}
                 onSwipeableRightOpen={() => {
                   const newListTodos = _onDeleteTodo(item);
