@@ -1,18 +1,92 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
+import Modal from 'react-native-modal';
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 import { getData, setData } from '../components/Sync';
 
-const Todo = ({ title, description, id, complete, onChangeText, onComplete }) => {  // todo object (what shows up in FlatList)
+const Todo = ({ title, id, complete, onChangeText, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
 
   return (
     <View style={styles.todo}>
       <TouchableOpacity style={styles.checkbox} onPress={onComplete}>
         <Ionicons name={complete ? "ios-checkmark-circle" : "ios-radio-button-off"} size={30} color="#b0b0b0"/>
       </TouchableOpacity>
-      <TextInput style={styles.todoInput} value={title} onChangeText={(text) => onChangeText(id, text)} />
+      <TouchableOpacity style={styles.todoButton} onPress={onTapText}>
+        <Text style={styles.todoTitle}>{title}</Text>
+      </TouchableOpacity>
+      {/* <TextInput style={styles.todoInput} value={title} onChangeText={(text) => onChangeText(id, text)} /> */}
+    </View>
+  )
+}
+
+const TodoModal = ({ todo, onSave, onComplete }) => { 
+  // onSave: pass new to-do to callback
+  const [title, setTitle] = useState(todo.title);
+  const [description, setDescription] = useState(todo.description);
+  const [complete, setComplete] = useState(todo.complete);
+
+  return (
+    <View style={todoStyles.container}>
+      <View style={todoStyles.titleBar}>
+        <TouchableOpacity 
+          style={todoStyles.checkbox}
+          onPress={() => setComplete(!complete)}  
+        >
+          <Ionicons name={complete ? "ios-checkmark-circle" : "ios-radio-button-off"} size={30} color="#b0b0b0"/>
+        </TouchableOpacity>
+        <TextInput
+          style={todoStyles.title} 
+          value={title} 
+          onChangeText={(text) => setTitle(text)} 
+          autoFocus={true}  
+        />
+      </View>
+      <TextInput 
+        style={todoStyles.description} 
+        value={description} 
+        placeholder="Description" 
+        placeholderTextColor="#b0b0b0"
+        multiline={true}
+        onChangeText={(text) => setDescription(text)}
+      />
+      <View style={todoStyles.reminderBar}>
+        <Text>This is where the reminder stuff will go</Text>
+      </View>
+      <View style={todoStyles.bottom}>
+        <TouchableOpacity
+          style={todoStyles.actionButton}
+          onPress={onComplete}
+        >
+          <Text style={todoStyles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[todoStyles.actionButton, todoStyles.saveButton]}
+          onPress={() => {
+            onSave({
+              "title": title,
+              "description": description,
+              "complete": complete,
+              "id": todo.id,
+            });  // pass "new" to-do item up
+            onComplete();  // hide modal
+          }}  
+        >
+          <Text style={todoStyles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
+
+const ErrorModal = ({ message, onDismiss }) => {
+  return (
+    <View style={[todoStyles.container, {alignItems: "center", justifyContent: "space-evenly"}]}>
+      <Text>{message}</Text>
+      <TouchableOpacity style={[todoStyles.actionButton]} onPress={onDismiss}>
+        <Text style={todoStyles.cancelButtonText}>Dismiss</Text>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -20,6 +94,8 @@ const Todo = ({ title, description, id, complete, onChangeText, onComplete }) =>
 export default function List({ route }) {
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editTodo, setEditTodo] = useState(false);  // determine if modal appears or not
+  const [selectedTodo, setSelectedTodo] = useState(null);  // determine which todo gets shown in modal
 
   const _getList = async (id) => {  // id: integer or string
     try {
@@ -33,30 +109,10 @@ export default function List({ route }) {
     }
   }
 
-  // ~~~~~~~~~~OLD CODE~~~~~~~~~~
-  // const _updateData = async (newList) => {  // doesn't use state data (need to update stuff immediately on change)
-  //   const listsAsString = await AsyncStorage.getItem('lists');  // old data
-  //   const lists = JSON.parse(listsAsString);
-
-  //   const newLists = lists.map((item) => {
-  //     const updatedItem = item.id === newList.id ? newList : item
-  //     // if (item.id === newList.id) {
-  //     //   let updatedItem = newList;
-  //     // }
-
-  //     return updatedItem;
-  //   });
-
-  //   console.log("newLists", newLists);
-
-  //   await AsyncStorage.setItem('lists', JSON.stringify(newLists));
-  // }
-  // ~~~~~~~~~~END OLD CODE~~~~~~~
-
   const _updateList = (property, newValue) => {
     let newList;
 
-    console.log(property);
+    console.log("Updating list property", property, "with new value", newValue);
 
     switch(property) {
       case "title": 
@@ -73,7 +129,7 @@ export default function List({ route }) {
         break;
     }
 
-    console.log(newList);
+    console.log("New list:", newList);
 
     setList(newList);
     setData("list-".concat(list.id), newList);
@@ -81,6 +137,9 @@ export default function List({ route }) {
 
   // returns updated todo list for use in _updateList
   const _updateTodo = (newTodo) => {
+
+    console.log("Creating updated to-do list with value", newTodo);
+
     const newListTodos = list.todos.map((item) => {
       let updatedItem = item;
 
@@ -93,22 +152,6 @@ export default function List({ route }) {
 
     return newListTodos;
   }
-
-  // obsolete code
-  // const _onChangeText = (id, text) => {
-  //   const newListTodos = list.todos.map((item) => {
-  //     if (item.id === id) {
-  //       let updatedItem = item;
-  //       updatedItem.title = text;
-  //     }
-
-  //     return item;
-  //   });
-
-  //   setList({ ...list, todos: newListTodos });  // WHY IS THE ... ACTUALLY PART OF THE SYNTAX WTF
-
-  //   setData("list-".concat(list.id), {...list, todos: newListTodos});
-  // }
 
   const _onCreateTodo = () => {
     let newListTodos = list.todos;
@@ -156,27 +199,30 @@ export default function List({ route }) {
       </View>
       {list ?  // a ton of conditional stuff for some reason
         list.todos && list.todos.length !== 0 ? 
-          <KeyboardAvoidingView behavior="padding">
-            <FlatList   // replacement for FlatList; moves with keyboard
-              data={list.todos}
-              renderItem={({ item }) => <Todo 
-                title={item.title} 
-                id={item.id} 
-                description={item.description} 
-                complete={item.complete} 
-                onChangeText={(id, text) => {
-                  // _onChangeText(id, text);
-                  const newListTodos = _updateTodo({ ...item, title: text });
-                  _updateList("todos", newListTodos);
-                }}
-                onComplete={() => {
-                  const newListTodos = _updateTodo({ ...item, complete: !item.complete });
-                  _updateList("todos", newListTodos);
-                }} />}
-              keyExtractor={item => item.id}
-              style={styles.listContainer}
-            />
-          </KeyboardAvoidingView>
+          
+          <FlatList   // replacement for FlatList; moves with keyboard
+            data={list.todos}
+            renderItem={({ item }) => <Todo 
+              title={item.title} 
+              id={item.id} 
+              description={item.description} 
+              complete={item.complete} 
+              onTapText={() => {
+                setEditTodo(true);
+                setSelectedTodo(item);
+              }}
+              onChangeText={(id, text) => {
+                // _onChangeText(id, text);
+                const newListTodos = _updateTodo({ ...item, title: text });
+                _updateList("todos", newListTodos);
+              }}
+              onComplete={() => {
+                const newListTodos = _updateTodo({ ...item, complete: !item.complete });
+                _updateList("todos", newListTodos);
+              }} />}
+            keyExtractor={item => item.id}
+            style={styles.listContainer}
+          />
         :
           loading ?
             <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
@@ -189,9 +235,100 @@ export default function List({ route }) {
         :
           <Text style={styles.placeholderText} allowFontScaling={false}>An error occurred while loading your to-dos. Please try again later.</Text>
       }
+      <Modal
+        style={styles.modal}
+        isVisible={editTodo}
+        animationIn={"fadeIn"}
+        animationOut={"fadeOut"}
+        avoidKeyboard={true}
+      >
+        {selectedTodo ? 
+          <TodoModal
+            todo={selectedTodo}
+            onComplete={() => setEditTodo(false)}
+            onSave={(todo) => {
+              console.log("New todo:", todo);
+              const newListTodos = _updateTodo(todo);
+              _updateList("todos", newListTodos);  // update data
+            }}
+          />
+        :
+          <ErrorModal 
+            message="An error occurred while loading your to-do. Please try again later." 
+            onDismiss={() => setEditTodo(false)} 
+          />
+        }
+      </Modal>
     </SafeAreaView>
   )
 }
+
+const todoStyles = StyleSheet.create({
+  container: {
+    backgroundColor: "#ffffff",
+    flexDirection: "column",
+    // justifyContent: "space-between",
+    // alignItems: "center",
+    height: 300,
+    width: 300,
+    borderRadius: 5,
+  },
+  titleBar: {
+    flexDirection: "row",
+    height: 55,
+    width: 300,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f2",
+  },
+  title: {
+    flex: 1,
+    color: "black",
+    fontSize: 17,
+  },
+  checkbox: {
+    margin: 10,
+  },
+  description: {
+    height: 120,
+    color: "black",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f2",
+    padding: 10,
+    paddingTop: 10,
+  },
+  reminderBar: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 55,
+    width: 300,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f2"
+  },
+  bottom: {
+    width: 300,
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  actionButton: {
+    height: 40,
+    width: 75,
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  cancelButtonText: {
+    color: "rgba(0, 122, 255, 1)",
+  },
+  saveButton: {
+    backgroundColor: "rgba(0, 122, 255, 1)",
+    borderRadius: 5,
+  },
+  saveButtonText: {
+    color: "white",
+  },
+})
 
 const styles = StyleSheet.create({
   safeAreaView: {
@@ -230,10 +367,17 @@ const styles = StyleSheet.create({
   checkbox: {
     margin: 10,
   },
-  todoInput: {
+  todoButton: {
     color: "#000000",
     flex: 1,
     height: 55,
+    justifyContent: "center",
+  },
+  todoTitle: {
     fontSize: 17,
+  },
+  modal: {  // make sure damn thing is centered
+    justifyContent: "center",
+    alignItems: "center",
   }
 })
