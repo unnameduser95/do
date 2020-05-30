@@ -152,19 +152,21 @@ export default Lists = () => {
   const _onReset = () => {  // oh no
     Alert.alert(
       "Are you sure about this?", 
-      "oh no you've pressed the big scary reset button...by the way this deletes everything, if you're seeing this outside of development then someone's getting fired", [
-      {
-        text: "Cancel",
-      },
-      {
-        text: "sure i guess",
-        onPress: () => {
-          AsyncStorage.clear();
-          setLists(null);
+      'Pressing "Reset" will permanently delete all stored lists and to-dos.', 
+      [
+        {
+          text: "Cancel",
         },
-        style: "destructive",
-      }
-    ]);
+        {
+          text: "Reset",
+          onPress: () => {
+            AsyncStorage.clear();
+            setLists(null);
+          },
+          style: "destructive",
+        }
+      ]
+    );
   }
 
   useEffect(() => {
