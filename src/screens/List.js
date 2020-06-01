@@ -18,7 +18,7 @@ const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo obje
       <TouchableOpacity style={styles.todoButton} onPress={onTapText}>
         <Text 
           style={styles.todoTitle}
-          numberOfLines={2}
+          numberOfLines={1}
         >
           {title}
         </Text>
@@ -307,7 +307,7 @@ export default function List({ route }) {
           onChangeText={(text) => {
             _updateList("title", text);
           }}
-        >{list ? list.title : "No title"}</TextInput>
+        >{list ? list.title : loading ? "Loading..." : "No title"}</TextInput>
         <TouchableOpacity onPress={_onCreateTodo}>
           <Ionicons name="ios-add-circle" size={35} color="rgba(0, 122, 255, 1)" />
         </TouchableOpacity>
