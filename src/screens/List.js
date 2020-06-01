@@ -6,6 +6,7 @@ import Swipeable from 'react-native-swipeable';
 
 import { getData, setData } from '../components/Sync';
 import { SwipeableIcon } from '../components/SharedUI';
+import { ListItem } from './Lists';
 
 const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
 
@@ -29,7 +30,7 @@ const TodoModal = ({ todo, onSave, onComplete }) => {
   const [complete, setComplete] = useState(todo.complete);
 
   return (
-    <View style={todoStyles.container}>
+    <View style={styles.modalContainer}>
       <View style={todoStyles.titleBar}>
         <TouchableOpacity 
           style={todoStyles.checkbox}
@@ -81,9 +82,73 @@ const TodoModal = ({ todo, onSave, onComplete }) => {
   )
 }
 
+const MoveModal = ({ currentListId, onDismiss, onMove }) => {
+  const [lists, setLists] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  const _refresh = async () => {
+    const _loadFromStorage = async (id) => {
+      const response = await getData("list-".concat(id));
+
+      return JSON.parse(response);
+    }
+
+    try {
+      const listIDs = await getData("lists");
+      const parsedListIDs = JSON.parse(listIDs);
+      const lists = await Promise.all(parsedListIDs.map(async (element) => {
+        return await _loadFromStorage(typeof element === "object" ? element.id : element);
+      }));
+
+      setLists(lists);
+      setLoading(false);
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    _refresh();
+  }, [])
+
+  return (
+    <View style={[styles.modalContainer, {height: 400}]}>
+      <View style={moveStyles.headerBar}>
+        <Text style={moveStyles.header}>Move to...</Text>
+      </View>
+      {lists ? 
+        <FlatList 
+          data={lists}
+          renderItem={({ item }) => <ListItem 
+            title={item.title} 
+            onPress={() => {
+              onMove(item.id);
+              onDismiss();
+            }}
+            isDisabled={ currentListId === item.id }
+          />}
+          keyExtractor={item => item.id}
+        />
+      : loading ?
+          <Text>Loading...</Text>
+        :
+          <Text>There was an error loading your lists. Please try again later.</Text>
+      }
+      <View style={moveStyles.bottom}>
+        <TouchableOpacity
+          style={todoStyles.actionButton}
+          onPress={onDismiss}
+        >
+            <Text style={todoStyles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
+
 const ErrorModal = ({ message, onDismiss }) => {
   return (
-    <View style={[todoStyles.container, {alignItems: "center", justifyContent: "space-evenly"}]}>
+    <View style={[styles.modalContainer, {alignItems: "center", justifyContent: "space-evenly"}]}>
       <Text>{message}</Text>
       <TouchableOpacity style={[todoStyles.actionButton]} onPress={onDismiss}>
         <Text style={todoStyles.cancelButtonText}>Dismiss</Text>
@@ -96,7 +161,8 @@ export default function List({ route }) {
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editTodo, setEditTodo] = useState(false);  // determine if modal appears or not
-  const [selectedTodo, setSelectedTodo] = useState(null);  // determine which todo gets shown in modal
+  const [moveTodo, setMoveTodo] = useState(false);
+  const [selectedTodo, setSelectedTodo] = useState(null);  // determine which todo gets shown in edit/move modal
 
   const _getList = async (id) => {  // id: integer or string
     try {
@@ -158,6 +224,7 @@ export default function List({ route }) {
     console.log("Creating updated to-do list with deleted value", todo);
 
     let newListTodos = list.todos;
+    console.log("Current list of todos", newListTodos);
     const index = newListTodos.indexOf(todo);
 
     if (index > -1) {
@@ -195,6 +262,24 @@ export default function List({ route }) {
     setEditTodo(true);
   }
 
+  const _onMove = async (todo, id) => {
+    try {
+      const newListTodos = _onDeleteTodo(todo);
+      // console.log("newListTodos", newListTodos);
+      _updateList("todos", newListTodos);
+
+      console.log("id", id);
+      const otherList = await getData("list-".concat(id));
+      // console.log("listOtherTodos", listOtherTodos);
+      let parsedOtherListTodos = JSON.parse(otherList);
+      parsedOtherListTodos.todos.push(todo);
+
+      setData("list-".concat(id), parsedOtherListTodos);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
   useEffect(() => {
     _getList(route.params.list.id);
   }, [])
@@ -227,6 +312,10 @@ export default function List({ route }) {
                 <SwipeableIcon 
                   iconName="ios-folder" 
                   iconSize={25} 
+                  onPress={() => {
+                    setSelectedTodo(item);
+                    setMoveTodo(true);
+                  }}
                 />,
                 <SwipeableIcon 
                   iconName="ios-trash" 
@@ -293,24 +382,64 @@ export default function List({ route }) {
           />
         }
       </Modal>
+      <Modal
+        style={styles.modal}
+        isVisible={moveTodo}
+        animationIn={"fadeIn"}
+        animationOut={"fadeOut"}
+        avoidKeyboard={true}
+      >
+        {selectedTodo ? 
+          <MoveModal
+            currentListId={list.id}
+            onDismiss={() => setMoveTodo(false)}
+            onMove={(id) => {
+              _onMove(selectedTodo, id);
+            }}
+          />
+        :
+          <ErrorModal 
+            message="An error occurred while loading your to-do. Please try again later." 
+            onDismiss={() => setEditTodo(false)} 
+          />
+        }
+      </Modal>
     </SafeAreaView>
   )
 }
 
-const todoStyles = StyleSheet.create({
-  container: {
-    backgroundColor: "#ffffff",
-    flexDirection: "column",
-    // justifyContent: "space-between",
-    // alignItems: "center",
-    height: 300,
-    width: 300,
-    borderRadius: 5,
+const moveStyles = StyleSheet.create({
+  headerBar: {
+    justifyContent: "center",
+    alignItems: "center",
+    height: 45,
   },
+  header: {
+    fontSize: 18,
+    fontWeight: "500",
+  },
+  listItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    height: 55,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f2f2f2"
+  },
+  bottom: {
+    width: 300,
+    height: 80,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  }
+})
+
+const todoStyles = StyleSheet.create({
   titleBar: {
     flexDirection: "row",
     height: 55,
-    width: 300,
     borderBottomWidth: 1,
     borderBottomColor: "#f2f2f2",
   },
@@ -417,5 +546,12 @@ const styles = StyleSheet.create({
   modal: {  // make sure damn thing is centered
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "#ffffff",
+    flexDirection: "column",
+    height: 300,
+    width: 300,
+    borderRadius: 5,
   }
 })

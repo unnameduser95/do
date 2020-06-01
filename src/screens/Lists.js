@@ -22,14 +22,15 @@ import { getData, setData } from '../components/Sync';
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
 
-const ListItem = ({ title, num, onPress }) => {  // num: number of tasks in list
+const ListItem = ({ title, num, onPress, isDisabled }) => {  // num: number of tasks in list
   return (
     <TouchableOpacity 
       style={styles.listItem}  
       onPress={onPress}
+      disabled={isDisabled ? isDisabled : false}
     >
       <View style={styles.listContent}>
-        <Text style={styles.listText}>{title}</Text>
+        <Text style={[styles.listText, { color: isDisabled ? "#b0b0b0" : "#000000" }]}>{title}</Text>
         <View style={styles.listEnd}>
           <Text style={styles.listNum}>{num}</Text>
           <Ionicons name={"ios-arrow-forward"} size={16} color="#b0b0b0" />
@@ -85,7 +86,7 @@ export default Lists = () => {
   const [loading, setLoading] = useState(true);  // this will be more important for cloud storage stuff
   const [listCreation, setListCreation] = useState(false);  // display creation "modal"
 
-  const _refresh = async () => {
+  const _refresh = async () => {  // performs series of actions
     const listIds = await _getLists();
     const data = listIds ? await _getListsData(listIds) : null;
 
@@ -93,11 +94,9 @@ export default Lists = () => {
     setLoading(false);
   }
   
-  const _getLists = async () => {  // will eventually only get ids
+  const _getLists = async () => {  // will only get ids
     try {
-      // const value = await AsyncStorage.getItem("lists");  // currently gets ALL list data, including todos
-      const value = await getData("lists");
-      // must change so that only necessary data is loaded
+      const value = await getData("lists");  // gets array of list ids
 
       // setLists(value ? JSON.parse(value) : value);
       // setLoading(false);
@@ -170,6 +169,7 @@ export default Lists = () => {
   }
 
   useEffect(() => {
+    // AsyncStorage.clear()
     _refresh();
   }, [])
 
@@ -354,5 +354,7 @@ const styles = StyleSheet.create({
   modal: {  // make sure damn thing is centered
     justifyContent: "center",
     alignItems: "center",
-  }
+  },
 });
+
+export { ListItem };
