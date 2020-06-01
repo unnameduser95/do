@@ -23,7 +23,7 @@ const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo obje
   )
 }
 
-const TodoModal = ({ todo, onSave, onComplete }) => { 
+const TodoModal = ({ todo, onSave, onComplete, onCancel }) => { 
   // onSave: pass new to-do to callback
   const [title, setTitle] = useState(todo.title);
   const [description, setDescription] = useState(todo.description);
@@ -59,7 +59,12 @@ const TodoModal = ({ todo, onSave, onComplete }) => {
       <View style={todoStyles.bottom}>
         <TouchableOpacity
           style={todoStyles.actionButton}
-          onPress={onComplete}
+          onPress={() => {
+            if (title === "") {
+              onCancel();
+            }
+            onComplete();
+          }}
         >
           <Text style={todoStyles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
@@ -373,6 +378,12 @@ export default function List({ route }) {
               console.log("New todo:", todo);
               const newListTodos = _updateTodo(todo);
               _updateList("todos", newListTodos);  // update data
+            }}
+            onCancel={() => {
+              if (selectedTodo.title === "") {
+                const newListTodos = _onDeleteTodo(selectedTodo);
+                _updateList("todos", newListTodos);
+              }
             }}
           />
         :
