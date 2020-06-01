@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import Modal from 'react-native-modal';
-import { Swipeable } from 'react-native-gesture-handler';
+import Swipeable from 'react-native-swipeable';
 
 import { getData, setData } from '../components/Sync';
-import { SwipeableDelete } from '../components/SharedUI';
+import { SwipeableIcon } from '../components/SharedUI';
 
 const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
 
@@ -223,15 +223,21 @@ export default function List({ route }) {
           <FlatList   // replacement for FlatList; moves with keyboard
             data={list.todos}
             renderItem={({ item }) => 
-              <Swipeable
-                rightThreshold={100}
-                friction={1.5}
-                renderRightActions={SwipeableDelete}
-                onSwipeableRightOpen={() => {
-                  const newListTodos = _onDeleteTodo(item);
-                  _updateList("todos", newListTodos);
-                }}
-              >
+              <Swipeable rightButtons={[
+                <SwipeableIcon 
+                  iconName="ios-folder" 
+                  iconSize={25} 
+                />,
+                <SwipeableIcon 
+                  iconName="ios-trash" 
+                  backgroundColor="red" 
+                  iconSize={25} 
+                  onPress={() => {
+                    const newListTodos = _onDeleteTodo(item);
+                    _updateList("todos", newListTodos);
+                  }}
+                />
+              ]} >
                 <Todo 
                   title={item.title} 
                   id={item.id} 

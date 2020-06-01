@@ -2,7 +2,6 @@ import 'react-native-gesture-handler';  // react navigation stupidity
 
 import React from 'react';
 import { 
-  StyleSheet, 
   Dimensions,
 } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
