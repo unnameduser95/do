@@ -16,7 +16,12 @@ const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo obje
         <Ionicons name={complete ? "ios-checkmark-circle" : "ios-radio-button-off"} size={30} color="#b0b0b0"/>
       </TouchableOpacity>
       <TouchableOpacity style={styles.todoButton} onPress={onTapText}>
-        <Text style={styles.todoTitle}>{title}</Text>
+        <Text 
+          style={styles.todoTitle}
+          numberOfLines={2}
+        >
+          {title}
+        </Text>
       </TouchableOpacity>
       {/* <TextInput style={styles.todoInput} value={title} onChangeText={(text) => onChangeText(id, text)} /> */}
     </View>
