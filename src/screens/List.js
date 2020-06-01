@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import Modal from 'react-native-modal';
 import Swipeable from 'react-native-swipeable';
@@ -307,7 +307,7 @@ export default function List({ route }) {
           onChangeText={(text) => {
             _updateList("title", text);
           }}
-        >{list ? list.title : loading ? "Loading..." : "No title"}</TextInput>
+        >{list ? list.title : loading ? "" : "No title"}</TextInput>
         <TouchableOpacity onPress={_onCreateTodo}>
           <Ionicons name="ios-add-circle" size={35} color="rgba(0, 122, 255, 1)" />
         </TouchableOpacity>
@@ -358,13 +358,13 @@ export default function List({ route }) {
             />
         :
           loading ?
-            <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
+            <ActivityIndicator size={30} color="#b0b0b0" />
           :
             <Text style={styles.placeholderText} allowFontScaling={false}>Tap the button above to create your first to-do!</Text>
       
       :
         loading ? 
-          <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
+          <ActivityIndicator size={30} color="#b0b0b0" />
         :
           <Text style={styles.placeholderText} allowFontScaling={false}>An error occurred while loading your to-dos. Please try again later.</Text>
       }
