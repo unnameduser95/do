@@ -223,6 +223,7 @@ export default Lists = () => {
           animationOut="fadeOut"
           avoidKeyboard
           hideModalContentWhileAnimating
+          backdropTransitionOutTiming={0}
         >
           <NewListCreation onComplete={() => setListCreation(false)} onCreate={(newList) => _onCreate(newList)}/>
         </Modal>

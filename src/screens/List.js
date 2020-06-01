@@ -370,6 +370,7 @@ export default function List({ route }) {
         animationOut="fadeOut"
         avoidKeyboard
         hideModalContentWhileAnimating
+        backdropTransitionOutTiming={0}
       >
         {selectedTodo ? 
           <TodoModal
@@ -401,6 +402,7 @@ export default function List({ route }) {
         animationOut="fadeOut"
         avoidKeyboard
         hideModalContentWhileAnimating
+        backdropTransitionOutTiming={0}
       >
         {selectedTodo ? 
           <MoveModal
