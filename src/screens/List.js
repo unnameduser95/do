@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import Modal from 'react-native-modal';
 import Swipeable from 'react-native-swipeable';
@@ -380,7 +380,10 @@ export default function List({ route }) {
         {selectedTodo ? 
           <TodoModal
             todo={selectedTodo}
-            onComplete={() => setEditTodo(false)}
+            onComplete={() => {
+              setEditTodo(false);
+              Keyboard.dismiss();
+            }}
             onSave={(todo) => {
               console.log("New todo:", todo);
               const newListTodos = _updateTodo(todo);
@@ -396,7 +399,10 @@ export default function List({ route }) {
         :
           <ErrorModal 
             message="An error occurred while loading your to-do. Please try again later." 
-            onDismiss={() => setEditTodo(false)} 
+            onDismiss={() => {
+              setEditTodo(false);
+              Keyboard.dismiss();
+            }} 
           />
         }
       </Modal>
@@ -412,7 +418,10 @@ export default function List({ route }) {
         {selectedTodo ? 
           <MoveModal
             currentListId={list.id}
-            onDismiss={() => setMoveTodo(false)}
+            onDismiss={() => {
+              setMoveTodo(false);
+              Keyboard.dismiss();
+            }}
             onMove={(id) => {
               _onMove(selectedTodo, id);
             }}
@@ -420,7 +429,10 @@ export default function List({ route }) {
         :
           <ErrorModal 
             message="An error occurred while loading your to-do. Please try again later." 
-            onDismiss={() => setEditTodo(false)} 
+            onDismiss={() => {
+              setEditTodo(false);
+              Keyboard.dismiss();
+            }} 
           />
         }
       </Modal>
