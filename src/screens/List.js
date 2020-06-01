@@ -366,9 +366,10 @@ export default function List({ route }) {
       <Modal
         style={styles.modal}
         isVisible={editTodo}
-        animationIn={"fadeIn"}
-        animationOut={"fadeOut"}
-        avoidKeyboard={true}
+        animationIn="fadeIn"
+        animationOut="fadeOut"
+        avoidKeyboard
+        hideModalContentWhileAnimating
       >
         {selectedTodo ? 
           <TodoModal
@@ -396,9 +397,10 @@ export default function List({ route }) {
       <Modal
         style={styles.modal}
         isVisible={moveTodo}
-        animationIn={"fadeIn"}
-        animationOut={"fadeOut"}
-        avoidKeyboard={true}
+        animationIn="fadeIn"
+        animationOut="fadeOut"
+        avoidKeyboard
+        hideModalContentWhileAnimating
       >
         {selectedTodo ? 
           <MoveModal

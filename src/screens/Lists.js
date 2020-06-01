@@ -219,9 +219,10 @@ export default Lists = () => {
         <Modal 
           style={styles.modal} 
           isVisible={listCreation}
-          animationIn={"fadeIn"} 
-          animationOut={"fadeOut"}
-          avoidKeyboard={true}
+          animationIn="fadeIn"
+          animationOut="fadeOut"
+          avoidKeyboard
+          hideModalContentWhileAnimating
         >
           <NewListCreation onComplete={() => setListCreation(false)} onCreate={(newList) => _onCreate(newList)}/>
         </Modal>
