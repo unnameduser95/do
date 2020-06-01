@@ -11,7 +11,7 @@ const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo obje
 
   return (
     <View style={styles.todo}>
-      <TouchableOpacity style={styles.checkbox} onPress={onComplete}>
+      <TouchableOpacity style={styles.checkbox} onPress={onComplete} activeOpacity={1}>
         <Ionicons name={complete ? "ios-checkmark-circle" : "ios-radio-button-off"} size={30} color="#b0b0b0"/>
       </TouchableOpacity>
       <TouchableOpacity style={styles.todoButton} onPress={onTapText}>
