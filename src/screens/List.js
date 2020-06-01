@@ -60,7 +60,7 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
         <TouchableOpacity
           style={todoStyles.actionButton}
           onPress={() => {
-            if (title === "") {
+            if (title === "" && description === "") {
               onCancel();
             }
             onComplete();
