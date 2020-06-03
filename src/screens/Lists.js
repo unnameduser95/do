@@ -17,28 +17,12 @@ import { Ionicons } from 'react-native-vector-icons';
 import AsyncStorage from '@react-native-community/async-storage';
 import Modal from 'react-native-modal';
 import { useNavigation } from '@react-navigation/native';
+
 import { getData, setData } from '../components/Sync';
+import { ListItem } from '../components/SharedUI';
 
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
-
-const ListItem = ({ title, num, onPress, isDisabled }) => {  // num: number of tasks in list
-  return (
-    <TouchableOpacity 
-      style={styles.listItem}  
-      onPress={onPress}
-      disabled={isDisabled ? isDisabled : false}
-    >
-      <View style={styles.listContent}>
-        <Text style={[styles.listText, { color: isDisabled ? "#b0b0b0" : "#000000" }]}>{title}</Text>
-        <View style={styles.listEnd}>
-          <Text style={styles.listNum}>{num}</Text>
-          <Ionicons name={"ios-arrow-forward"} size={16} color="#b0b0b0" />
-        </View>
-      </View>
-    </TouchableOpacity>
-  )
-}
 
 const NewListCreation = ({ onComplete, onCreate }) => {  // what appears inside modal
   const [name, setName] = useState("");
@@ -175,7 +159,6 @@ export default Lists = () => {
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
-      <StatusBar barStyle="dark-content" />
       <View style={styles.container}>
         <View style={styles.headerContainer}>
           <Text style={styles.heading} allowFontScaling={false}>Lists</Text>
@@ -323,14 +306,11 @@ const styles = StyleSheet.create({
   listItem: {
     flex: 1,
     flexDirection: "row",
-    // justifyContent: "space-between",
     alignItems: "center",
     height: 55,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#f2f2f2"
-    // borderWidth: 1,
-    // borderColor: "#f2f2f2",
   },
   listContent: {
     flex: 1,

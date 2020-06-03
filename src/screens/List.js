@@ -5,10 +5,10 @@ import Modal from 'react-native-modal';
 import Swipeable from 'react-native-swipeable';
 
 import { getData, setData } from '../components/Sync';
-import { SwipeableIcon } from '../components/SharedUI';
-import { ListItem } from './Lists';
+import { SwipeableIcon, TodoModal, MoveModal } from '../components/SharedUI';
+// import { ListItem } from './Lists';
 
-const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
+const Todo = ({ title, complete, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
 
   return (
     <View style={styles.todo}>
@@ -24,134 +24,6 @@ const Todo = ({ title, id, complete, onComplete, onTapText }) => {  // todo obje
         </Text>
       </TouchableOpacity>
       {/* <TextInput style={styles.todoInput} value={title} onChangeText={(text) => onChangeText(id, text)} /> */}
-    </View>
-  )
-}
-
-const TodoModal = ({ todo, onSave, onComplete, onCancel }) => { 
-  // onSave: pass new to-do to callback
-  const [title, setTitle] = useState(todo.title);
-  const [description, setDescription] = useState(todo.description);
-  const [complete, setComplete] = useState(todo.complete);
-
-  return (
-    <View style={styles.modalContainer}>
-      <View style={todoStyles.titleBar}>
-        <TouchableOpacity 
-          style={todoStyles.checkbox}
-          onPress={() => setComplete(!complete)}  
-        >
-          <Ionicons name={complete ? "ios-checkmark-circle" : "ios-radio-button-off"} size={30} color="#b0b0b0"/>
-        </TouchableOpacity>
-        <TextInput
-          style={todoStyles.title} 
-          value={title} 
-          onChangeText={(text) => setTitle(text)} 
-          autoFocus={true}  
-        />
-      </View>
-      <TextInput 
-        style={todoStyles.description} 
-        value={description} 
-        placeholder="Description" 
-        placeholderTextColor="#b0b0b0"
-        multiline={true}
-        onChangeText={(text) => setDescription(text)}
-      />
-      <View style={todoStyles.reminderBar}>
-        <Text>This is where the reminder stuff will go</Text>
-      </View>
-      <View style={todoStyles.bottom}>
-        <TouchableOpacity
-          style={todoStyles.actionButton}
-          onPress={() => {
-            if (title === "" && description === "") {
-              onCancel();
-            }
-            onComplete();
-          }}
-        >
-          <Text style={todoStyles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[todoStyles.actionButton, todoStyles.saveButton]}
-          onPress={() => {
-            onSave({
-              "title": title,
-              "description": description,
-              "complete": complete,
-              "id": todo.id,
-            });  // pass "new" to-do item up
-            onComplete();  // hide modal
-          }}  
-        >
-          <Text style={todoStyles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
-}
-
-const MoveModal = ({ currentListId, onDismiss, onMove }) => {
-  const [lists, setLists] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  const _refresh = async () => {
-    const _loadFromStorage = async (id) => {
-      const response = await getData("list-".concat(id));
-
-      return JSON.parse(response);
-    }
-
-    try {
-      const listIDs = await getData("lists");
-      const parsedListIDs = JSON.parse(listIDs);
-      const lists = await Promise.all(parsedListIDs.map(async (element) => {
-        return await _loadFromStorage(typeof element === "object" ? element.id : element);
-      }));
-
-      setLists(lists);
-      setLoading(false);
-    } catch(e) {
-      console.error(e);
-    }
-  };
-
-  useEffect(() => {
-    _refresh();
-  }, [])
-
-  return (
-    <View style={[styles.modalContainer, {height: 400}]}>
-      <View style={moveStyles.headerBar}>
-        <Text style={moveStyles.header}>Move to...</Text>
-      </View>
-      {lists ? 
-        <FlatList 
-          data={lists}
-          renderItem={({ item }) => <ListItem 
-            title={item.title} 
-            onPress={() => {
-              onMove(item.id);
-              onDismiss();
-            }}
-            isDisabled={ currentListId === item.id }
-          />}
-          keyExtractor={item => item.id}
-        />
-      : loading ?
-          <Text>Loading...</Text>
-        :
-          <Text>There was an error loading your lists. Please try again later.</Text>
-      }
-      <View style={moveStyles.bottom}>
-        <TouchableOpacity
-          style={todoStyles.actionButton}
-          onPress={onDismiss}
-        >
-            <Text style={todoStyles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   )
 }
@@ -439,91 +311,6 @@ export default function List({ route }) {
     </SafeAreaView>
   )
 }
-
-const moveStyles = StyleSheet.create({
-  headerBar: {
-    justifyContent: "center",
-    alignItems: "center",
-    height: 45,
-  },
-  header: {
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  listItem: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    height: 55,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f2f2f2"
-  },
-  bottom: {
-    width: 300,
-    height: 80,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  }
-})
-
-const todoStyles = StyleSheet.create({
-  titleBar: {
-    flexDirection: "row",
-    height: 55,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f2f2f2",
-  },
-  title: {
-    flex: 1,
-    color: "black",
-    fontSize: 17,
-  },
-  checkbox: {
-    margin: 10,
-  },
-  description: {
-    height: 120,
-    color: "black",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f2f2f2",
-    padding: 10,
-    paddingTop: 10,
-  },
-  reminderBar: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 55,
-    width: 300,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f2f2f2"
-  },
-  bottom: {
-    width: 300,
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  actionButton: {
-    height: 40,
-    width: 75,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 10,
-  },
-  cancelButtonText: {
-    color: "rgba(0, 122, 255, 1)",
-  },
-  saveButton: {
-    backgroundColor: "rgba(0, 122, 255, 1)",
-    borderRadius: 5,
-  },
-  saveButtonText: {
-    color: "white",
-  },
-})
 
 const styles = StyleSheet.create({
   safeAreaView: {
