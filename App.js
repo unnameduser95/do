@@ -2,22 +2,23 @@ import 'react-native-gesture-handler';  // react navigation stupidity
 
 import React from 'react';
 import { 
-  Dimensions,
+  StatusBar
 } from 'react-native';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import List from './src/screens/List';
 import Lists from './src/screens/Lists';
 
-const screenWidth = Dimensions.get("screen").width;
-const screenHeight = Dimensions.get("screen").height;
+// const screenWidth = Dimensions.get("screen").width;
+// const screenHeight = Dimensions.get("screen").height;
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
+      <StatusBar barStyle="dark-content" />
       <Stack.Navigator headerMode={"none"}>
         <Stack.Screen name="Lists" component={Lists} />
         <Stack.Screen name="List" component={List} />
