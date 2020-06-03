@@ -61,4 +61,6 @@ buck-out/
 # Expo
 .expo/*
 web-build/
+
+# Firebase stuff
 ios/GoogleService-Info.plist
