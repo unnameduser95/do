@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native';
+import { View, Text, SafeAreaView, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Keyboard, Dimensions } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import Modal from 'react-native-modal';
 import Swipeable from 'react-native-swipeable';
@@ -7,6 +7,8 @@ import Swipeable from 'react-native-swipeable';
 import { getData, setData } from '../components/Sync';
 import { SwipeableIcon, TodoModal, MoveModal } from '../components/SharedUI';
 // import { ListItem } from './Lists';
+
+const screenWidth = Dimensions.get("screen").width;
 
 const Todo = ({ title, complete, onComplete, onTapText }) => {  // todo object (what shows up in FlatList)
 
@@ -17,7 +19,7 @@ const Todo = ({ title, complete, onComplete, onTapText }) => {  // todo object (
       </TouchableOpacity>
       <TouchableOpacity style={styles.todoButton} onPress={onTapText}>
         <Text 
-          style={styles.todoTitle}
+          style={[styles.todoTitle, complete ? {textDecorationLine: "line-through", color: "#b0b0b0"} : {color: "black"}]}
           numberOfLines={1}
         >
           {title}
@@ -32,16 +34,26 @@ const ErrorModal = ({ message, onDismiss }) => {
   return (
     <View style={[styles.modalContainer, {alignItems: "center", justifyContent: "space-evenly"}]}>
       <Text>{message}</Text>
-      <TouchableOpacity style={[todoStyles.actionButton]} onPress={onDismiss}>
-        <Text style={todoStyles.cancelButtonText}>Dismiss</Text>
+      <TouchableOpacity style={[styles.actionButton]} onPress={onDismiss}>
+        <Text style={{ color: "rgba(0, 122, 255, 1)" }}>Dismiss</Text>
       </TouchableOpacity>
     </View>
   )
 }
 
+const EmptyTodoPage = ({ error }) => {
+  const text = error ? 
+    <Text style={styles.placeholderText} allowFontScaling={false}>An error occurred while loading your to-dos. Please try again later.</Text>
+  :
+    <Text style={styles.placeholderText} allowFontScaling={false}>Tap the button above to create a new to-do!</Text>
+
+  return text;
+}
+
 export default function List({ route }) {
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(false);
   const [editTodo, setEditTodo] = useState(false);  // determine if modal appears or not
   const [moveTodo, setMoveTodo] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState(null);  // determine which todo gets shown in edit/move modal
@@ -56,6 +68,20 @@ export default function List({ route }) {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  const _getIncompleteTodos = (todos) => {
+    const newListTodos = todos.filter((element) => !element.complete)
+
+    console.log("Incomplete to-dos:", newListTodos);
+    return newListTodos;
+  }
+
+  const _getCompletedTodos = (todos) => {
+    const newListTodos = todos.filter((element) => element.complete);
+
+    console.log("Completed to-dos:", newListTodos);
+    return newListTodos;
   }
 
   const _updateList = (property, newValue) => {
@@ -186,59 +212,59 @@ export default function List({ route }) {
       </View>
       {list ?  // a ton of conditional stuff for some reason
         list.todos && list.todos.length !== 0 ? 
-          
-          <FlatList   // replacement for FlatList; moves with keyboard
-            data={list.todos}
-            renderItem={({ item }) => 
-              <Swipeable rightButtons={[
-                <SwipeableIcon 
-                  iconName="ios-folder" 
-                  iconSize={25} 
-                  onPress={() => {
-                    setSelectedTodo(item);
-                    setMoveTodo(true);
-                  }}
-                />,
-                <SwipeableIcon 
-                  iconName="ios-trash" 
-                  backgroundColor="red" 
-                  iconSize={25} 
-                  onPress={() => {
-                    const newListTodos = _onDeleteTodo(item);
-                    _updateList("todos", newListTodos);
-                  }}
-                />
-              ]} >
-                <Todo 
-                  title={item.title} 
-                  id={item.id} 
-                  description={item.description} 
-                  complete={item.complete} 
-                  onTapText={() => {
-                    setEditTodo(true);
-                    setSelectedTodo(item);
-                  }}
-                  onComplete={() => {
-                    const newListTodos = _updateTodo({ ...item, complete: !item.complete });
-                    _updateList("todos", newListTodos);
-                  }}  
-                />
-              </Swipeable>
+          <View style={{ display: "flex", flex: 1}}>
+            <FlatList   // list of to-dos
+              data={
+                showCompleted ? 
+                  _getIncompleteTodos(list.todos).concat(_getCompletedTodos(list.todos))  // combine two lists so incomplete tasks appear first
+                :
+                  _getIncompleteTodos(list.todos)
+              }
+              renderItem={({ item }) => 
+                {
+                  return (
+                    <Swipeable rightButtons={[
+                      <SwipeableIcon iconName="ios-folder" iconSize={25} onPress={() => {
+                        setSelectedTodo(item);
+                        setMoveTodo(true);
+                      } } />,
+                      <SwipeableIcon iconName="ios-trash" backgroundColor="red" iconSize={25} onPress={() => {
+                        const newListTodos = _onDeleteTodo(item);
+                        _updateList("todos", newListTodos);
+                      } } />
+                    ]}>
+                      <Todo title={item.title} id={item.id} description={item.description} complete={item.complete} onTapText={() => {
+                        setEditTodo(true);
+                        setSelectedTodo(item);
+                      } } onComplete={() => {
+                        const newListTodos = _updateTodo({ ...item, complete: !item.complete });
+                        _updateList("todos", newListTodos);
+                      } } />
+                    </Swipeable>
+                  );
+                }
               }
               keyExtractor={item => item.id}
               style={styles.listContainer}
             />
+            <TouchableOpacity 
+              style={[styles.actionButton, { width: screenWidth }]}
+              onPress={() => setShowCompleted(!showCompleted)}
+            >
+              <Text style={{ color: "rgba(0, 122, 255, 1)" }}>{showCompleted ? "Hide completed" : "Show completed"}</Text>
+            </TouchableOpacity>
+          </View>
         :
           loading ?
             <ActivityIndicator size={30} color="#b0b0b0" />
           :
-            <Text style={styles.placeholderText} allowFontScaling={false}>Tap the button above to create your first to-do!</Text>
-      
+            <EmptyTodoPage error={false} />
       :
         loading ? 
           <ActivityIndicator size={30} color="#b0b0b0" />
         :
-          <Text style={styles.placeholderText} allowFontScaling={false}>An error occurred while loading your to-dos. Please try again later.</Text>
+          // <Text style={styles.placeholderText} allowFontScaling={false}>An error occurred while loading your to-dos. Please try again later.</Text>
+          <EmptyTodoPage error={true} />
       }
       <Modal
         style={styles.modal}
@@ -340,6 +366,7 @@ const styles = StyleSheet.create({
   listContainer: {
     borderTopWidth: 1,
     borderTopColor: "#f2f2f2",
+    flex: 1
   },
   todo: {
     flex: 1,
@@ -372,5 +399,12 @@ const styles = StyleSheet.create({
     height: 300,
     width: 300,
     borderRadius: 5,
-  }
+  },
+  actionButton: {
+    height: 40,
+    width: 75,
+    justifyContent: "center",
+    alignItems: "center",
+    // marginHorizontal: 10,
+  },
 })

@@ -196,7 +196,7 @@ export default Lists = () => {
           loading ?
             <Text style={styles.placeholderText} allowFontScaling={false}>Loading...</Text>  // user should rarely see this (except on first load)
           :
-            <Text style={styles.placeholderText} allowFontScaling={false}>Tap the button above to create your first list!</Text>
+            <Text style={styles.placeholderText} allowFontScaling={false}>Tap the button above to create a new list!</Text>
         }
 
         <Modal 
