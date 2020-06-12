@@ -168,7 +168,8 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
       <View style={todoStyles.titleBar}>
         <TouchableOpacity 
           style={todoStyles.checkbox}
-          onPress={() => setComplete(!complete)}  
+          onPress={() => setComplete(!complete)}
+          activeOpacity={1}
         >
           <Ionicons name={complete ? "ios-checkmark-circle" : "ios-radio-button-off"} size={30} color="#b0b0b0"/>
         </TouchableOpacity>
