@@ -157,10 +157,34 @@ const moveStyles = StyleSheet.create({
   }
 });
 
+const DateTimePicker = ({ onPress, width, height, display, icon }) => {
+  return (
+    <TouchableOpacity onPress={onPress} style={{ 
+      width: width ? width : 135,
+      height: height ? height : 40, 
+      margin: 5,
+      padding: 5,
+      backgroundColor: "#f0f0f0",
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    }}
+    >
+      <Text>
+        {display ? display : "None"}
+      </Text>
+      <Ionicons name={icon ? icon : "ios-calendar"} size={25} color="#b0b0b0" />
+    </TouchableOpacity>
+  )
+}
+
 const TodoModal = ({ todo, onSave, onComplete, onCancel }) => { 
   // onSave: pass new to-do to callback
   const [title, setTitle] = useState(todo.title);
   const [description, setDescription] = useState(todo.description);
+  const [date, setDate] = useState(todo.date);
+  const [time, setTime] = useState(todo.time);
   const [complete, setComplete] = useState(todo.complete);
 
   return (
@@ -189,7 +213,8 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
         onChangeText={(text) => setDescription(text)}
       />
       <View style={todoStyles.reminderBar}>
-        <Text>This is where the reminder stuff will go</Text>
+        <DateTimePicker display={date} icon={"ios-calendar"} />
+        <DateTimePicker display={time} icon={"ios-time"} />
       </View>
       <View style={todoStyles.bottom}>
         <TouchableOpacity
@@ -211,6 +236,8 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
               "description": description,
               "complete": complete,
               "id": todo.id,
+              "date": date,
+              "time": time
             });  // pass "new" to-do item up
             onComplete();  // hide modal
           }}  
@@ -246,6 +273,8 @@ const todoStyles = StyleSheet.create({
     paddingTop: 10,
   },
   reminderBar: {
+    display: "flex",
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     height: 55,

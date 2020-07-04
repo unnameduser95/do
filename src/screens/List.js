@@ -156,6 +156,8 @@ export default function List({ route }) {
       description: "",
       complete: false,
       id: id.toString(),
+      date: null,
+      time: null,
     }
 
     newListTodos.push(newTodo);
