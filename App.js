@@ -17,10 +17,10 @@ import NotifService from './src/components/Notifications';
 const Stack = createStackNavigator();
 
 export default function App() {
-  // useEffect(() => {
-  //   console.log("App component mounted");
-  //   NotifService.configure();
-  // }, []);
+  useEffect(() => {
+    console.log("App component mounted");
+    NotifService.configure();
+  }, []);
 
   return (
     <NavigationContainer>
