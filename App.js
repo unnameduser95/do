@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';  // react navigation stupidity
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   StatusBar
 } from 'react-native';
@@ -9,6 +9,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import List from './src/screens/List';
 import Lists from './src/screens/Lists';
+import NotifService from './src/components/Notifications';
 
 // const screenWidth = Dimensions.get("screen").width;
 // const screenHeight = Dimensions.get("screen").height;
@@ -16,6 +17,11 @@ import Lists from './src/screens/Lists';
 const Stack = createStackNavigator();
 
 export default function App() {
+  // useEffect(() => {
+  //   console.log("App component mounted");
+  //   NotifService.configure();
+  // }, []);
+
   return (
     <NavigationContainer>
       <StatusBar barStyle="dark-content" />
