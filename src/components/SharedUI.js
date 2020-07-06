@@ -8,6 +8,7 @@ import {
   Text,
   FlatList,
   Platform,
+  Keyboard
  } from 'react-native';
 import { Ionicons } from 'react-native-vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -190,7 +191,7 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
   // onSave: pass new to-do to callback
   const [title, setTitle] = useState(todo.title);
   const [description, setDescription] = useState(todo.description);
-  const [date, setDate] = useState(todo.date);  // will be passed down to DateTimePickerButton
+  const [date, setDate] = useState(todo.date ? new Date(todo.date) : null);  // will be passed down to DateTimePickerButton
   const [timeEnabled, setTimeEnabled] = useState(todo.timeEnabled);
   const [complete, setComplete] = useState(todo.complete);
 
@@ -201,6 +202,7 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
   const _onChangeDate = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === 'ios');  // hide if on Android
+    console.log(typeof currentDate);
     setDate(currentDate);
     // console.log(currentDate);
   }
@@ -233,18 +235,19 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
       <View style={show && Platform.OS === 'ios' ? [todoStyles.reminderBar, { height: 200 }] : todoStyles.reminderBar}>
         <View style={todoStyles.reminderButtons}>
           <DateTimePickerButton 
-            display={date ? (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear() : "Date"} 
-            icon={date ? "ios-close-circle" : "ios-calendar"} 
+            // MM/DD/YYYY format
+            display={date ? (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear() : "Date"}
+            icon={date ? "ios-close-circle" : "ios-calendar"}
             onPress={() => {
-              setDate(new Date())
+              setDate(date ? date : new Date());  // automatically set date to Today if empty
               setShow(mode === 'date' && show ? false : true);
               setMode('date');
             }}
             onIconPress={
-              date ?
+              date ?  // only clears date if it exists
                 () => {
                   setDate(null);
-                  setTimeEnabled(false);
+                  setTimeEnabled(false);  // prevents a crash when rendering time without date
                   setShow(false);
                 }
               :
@@ -252,8 +255,21 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
             }
           />
           <DateTimePickerButton 
-            display={timeEnabled ? date.getHours() + ":" + date.getMinutes() : "Time"} 
-            icon={timeEnabled ? "ios-close-circle" : "ios-time"} 
+            // had to do some extra formatting here to get time to show up correctly
+            display={timeEnabled ? 
+              (date.getHours() === 0 ?
+                12
+              :  
+                date.getHours() > 12 ? date.getHours() - 12 : date.getHours()
+              ) + 
+              ":" + 
+              (date.getMinutes().toString().length === 1 ? "0" + date.getMinutes() : date.getMinutes()) +
+              " " +
+              (date.getHours() > 11 ? "PM" : "AM")
+            : 
+              "Time"
+            }
+            icon={timeEnabled ? "ios-close-circle" : "ios-time"}
             onPress={() => {
               if (date) {
                 setShow(mode === 'time' && show ? false : true);
@@ -263,7 +279,7 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
             }}
             onIconPress={
               timeEnabled ?
-                () => {
+                () => {  // clear time if time enabled
                   setTimeEnabled(false);
                   setShow(false);
                 }
@@ -305,7 +321,7 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
               "description": description,
               "complete": complete,
               "id": todo.id,
-              "date": date,
+              "date": date.getTime(),
               "timeEnabled": timeEnabled
             });  // pass "new" to-do item up
             onComplete();  // hide modal
@@ -398,7 +414,7 @@ const modalStyles = StyleSheet.create({
   container: {
     backgroundColor: "#ffffff",
     flexDirection: "column",
-    height: 265,
+    height: 260,
     width: 300,
     borderRadius: 5,
   },
