@@ -20,6 +20,9 @@ const NotifService = {
         sound: true,
       }
     });
+  },
+  scheduleNotification: (details) => {
+    PushNotification.scheduleLocalNotification(details);
   }
 };
 
