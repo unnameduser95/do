@@ -255,9 +255,11 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
             display={timeEnabled ? date.getHours() + ":" + date.getMinutes() : "Time"} 
             icon={timeEnabled ? "ios-close-circle" : "ios-time"} 
             onPress={() => {
-              setShow(mode === 'time' && show ? false : true);
-              setMode('time');
-              setTimeEnabled(true);
+              if (date) {
+                setShow(mode === 'time' && show ? false : true);
+                setMode('time');
+                setTimeEnabled(true);
+              }
             }}
             onIconPress={
               timeEnabled ?
