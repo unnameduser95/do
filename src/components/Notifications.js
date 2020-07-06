@@ -21,8 +21,12 @@ const NotifService = {
       }
     });
   },
-  scheduleNotification: (details) => {
-    PushNotification.scheduleLocalNotification(details);
+  scheduleNotification: (title, message, date) => {
+    PushNotification.localNotificationSchedule({
+      title: title ? title : "My notification title",
+      message: message ? message : "My notification message",
+      date: date ? date : new Date(),
+    });
   }
 };
 
