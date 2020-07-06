@@ -244,6 +244,7 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
               date ?
                 () => {
                   setDate(null);
+                  setTimeEnabled(false);
                   setShow(false);
                 }
               :
