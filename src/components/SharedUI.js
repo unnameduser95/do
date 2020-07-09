@@ -321,7 +321,7 @@ const TodoModal = ({ todo, onSave, onComplete, onCancel }) => {
               "description": description,
               "complete": complete,
               "id": todo.id,
-              "date": date.getTime(),
+              "date": date ? date.getTime() : null,
               "timeEnabled": timeEnabled
             });  // pass "new" to-do item up
             onComplete();  // hide modal
